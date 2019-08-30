@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <title>Document</title>
+    <style>
+        .main {
+            background: #dcdcdc;
+            height: 400px;
+        }
+        li{
+            padding: 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <el-menu :default-active="activeIndex2" class="el-menu-demo" mode="horizontal" @select="handleSelect"
+                    background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+                    <el-menu-item index="1">消息中心</el-menu-item>
+                </el-menu>
+            </el-header>
+            <el-main>
+                <div class="main">
+                    <ul>
+                        <li v-for="(item, index) in msgList" :key="index">{{item}}</li>
+                    </ul>
+                </div>
+            </el-main>
+            <el-footer>
+                <el-input placeholder="请输入内容" v-model="input2" @keyup.enter.native="sendMsg">
+                    <el-button @click="sendMsg" slot="append">发送</el-button>
+                </el-input>
+            </el-footer>
+        </el-container>
+    </div>
+</body>
+<script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.6.10/vue.common.dev.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            input2: '',//输入要发言的内容
+            activeIndex: '1',
+            activeIndex2: '1',
+            socket: '',//socket实例
+            msgList:[],//所有的消息列表
+        },
+        methods: {
+            initSocket() {
+                this.socket = new WebSocket('ws://localhost:12345/zhao')
+                this.socket.onmessage = this.socketMessage
+            },
+            socketMessage(msg) {
+                console.log('socket接收到的信息',msg.data)
+                this.msgList.unshift(JSON.parse(msg.data))
+
+            },
+            
+            getMsg() {
+                console.log('点击按钮')
+                axios.get('http://localhost:12345/getmsg').then(data => console.log(data))
+            },
+            // 发送消息
+            sendMsg() {
+                console.log('发送消息')
+                this.socket.send(JSON.stringify(this.input2))
+                // axios.get(`http://localhost:12345/sentmsg?msg=${this.input2}`).then(data => console.log(data))
+            },
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            }
+        },
+        created() {
+            this.initSocket()
+        },
+    })
+</script>
+
+</html>
